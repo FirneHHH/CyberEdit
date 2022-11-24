@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cyberedit</title>
+  <style>
+    body {
+      margin: 0;
+    } .hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  
+  <div style="position: fixed; top: 0; left: 0;">
+    <input type="file" id="filename" style="display:none" accept=".cgp" nwworkingdir="C:\\Program Files (x86)\\Steam\\steamapps\\common\\ULTRAKILL\\Cybergrind\\Patterns" />
+    <button id="expbut">Export</button>
+    <button id="impbut">Import</button>
+  </div>
+
+  <canvas id="compass" style="position: fixed; bottom: 5px; left: 5px;"></canvas>
+
+  <div style="position: fixed; top: 0; right: 0;">
+    <canvas id="grid"></canvas><br>
+    <select id="layerselect">
+      <option value="height">Height layer</option>
+      <option value="entity">Entity layer</option>
+    </select>
+
+    <select id="entityselect" class="hidden">
+      <option value="0">None</option>
+      <option value="s">Stairs</option>
+      <option value="J">Jump Pad</option>
+      <option value="n">Melee</option>
+      <option value="p">Projectile</option>
+      <option value="H">Hideous Mass</option>
+    </select>
+
+    <br>
+    <div id="heightselect">
+      <select id="toolselect">
+        <option value="add">Add</option>
+        <option value="set">Set</option>
+      </select>
+      <input type="number" id="toolamount"  value="1">
+    </div>
+  </div>
+
+  <script src="./view.js" type="module"></script>
+
+</body>
+</html>

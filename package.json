@@ -1,0 +1,27 @@
+{
+  "name": "cyberedit",
+  "version": "1.0.0",
+  "description": "An editor for Cyber Grind Patterns with a 3D viewer",
+  "main": "editor.html",
+  "author": "FirneHHH",
+  "window": {
+    "width": 1280,
+    "height": 720,
+    "resizable": false
+  },
+  "devDependencies": {
+    "nwjs-builder-phoenix": "^1.15.0"
+  },
+  "build": {
+    "nwVersion": "stable",
+    "packed": true,
+    "targets": [ "zip" ],
+    "excludes": [ "node_modules" ],
+    "ffmpegIntegration": false
+  },
+  "scripts": {
+    "dist": "build --tasks win-x86,win-x64 --mirror https://dl.nwjs.io/ .",
+    "start": "run --x86 --mirror https://dl.nwjs.io/ ."
+  },
+  "license": "MIT"
+}
