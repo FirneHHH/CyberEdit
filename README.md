@@ -17,18 +17,14 @@ This program is currently portable, so extract it anywhere you like! Location wo
 ## TODO
 (in no particular order)
 
-- Use raycasting to select tiles instead of using a grid
-- Limit tile height to >= 60 (death height in-game)
 - Make stairs appear in the viewport instead of just replacing a texture
 - Main menu
 - Clean UI
-- Ease vertical movement
+- Ease vertical camera movement
 - Render in a worker thread
-- Resizing
 - Rectangular selections
 - Custom tile colors
 - Allow changing ULTRAKILL install path
-- Remove x86 distrobution (cause ULTRAKILL doesn't do 32-bit apparently)
 
 
 
@@ -36,7 +32,6 @@ This program is currently portable, so extract it anywhere you like! Location wo
 
 - [NW.js](https://nwjs.io/downloads/) - Runtime
 - [Node.js](https://nodejs.org/en/) - For NPM
-- Three.js is in the `/lib` folder already :)
 
 
 

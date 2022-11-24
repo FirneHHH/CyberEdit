@@ -1,23 +1,3 @@
-const Keys = {};
-window.addEventListener('keydown', ev => {
-  Keys[ev.code] = true;
-});
-window.addEventListener('keyup', ev => {
-  Keys[ev.code] = false;
-});
-
-
-
-// 2D grid in the top-right
-const gc = document.getElementById('grid');
-const ctx = gc.getContext('2d');
-
-gc.width = gc.height = 16 * 20;
-
-ctx.textAlign = 'center';
-ctx.textBaseline = 'middle';
-ctx.font = '14px monospace';
-
 // Compass
 const compass = document.getElementById("compass");
 const context = compass.getContext('2d');
@@ -67,6 +47,12 @@ camera.lookAt( 0, 0, 0 );
 const renderer = new THREE.WebGLRenderer();
 renderer.setSize( window.innerWidth, window.innerHeight );
 document.body.appendChild( renderer.domElement );
+
+window.addEventListener( 'resize', () => {
+  renderer.setSize( window.innerWidth, window.innerHeight );
+  camera.aspect = window.innerWidth / window.innerHeight;
+  camera.updateProjectionMatrix();
+});
 
 
 // why do there need to be 2 textures...
@@ -145,6 +131,7 @@ class Tile extends THREE.Mesh {
   }
   
   onBeforeRender() {
+    this.h = Math.max( -60, this.h ); // Limit height to
     // Height management
     const toY = this.h / 2 - 5; // Target Y
     if ( this.position.y == toY ) return; // If already in place
@@ -234,40 +221,13 @@ scene.add( ZapPlane );
 
 
 
-// Cam pointerlock
-let Pointlocked = false;
-renderer.domElement.addEventListener( 'mousedown', ev => {
-  //                     you never know
-  if ( ev.button != 0 || Pointlocked ) return;
-  
-  Pointlocked = true;
-  renderer.domElement.requestPointerLock();
-});
-renderer.domElement.addEventListener( 'mouseup', ev => {
-  if ( ev.button != 0 || !Pointlocked ) return;
-
-  Pointlocked = false;
-  document.exitPointerLock();
-});
-
-// Cam rotation
-renderer.domElement.addEventListener( 'mousemove', ev => {
-  if ( !Pointlocked ) return;
-
-  CamRot -= ev.movementX / 300;
-  CamRot = CamRot % ( 2 * Math.PI );
-});
-// Cam vertical movement
-renderer.domElement.addEventListener( 'wheel', ev => {
-  camera.position.y -= ev.deltaY / 300;
-});
-
-
-console.log(EntityMats);
-
 // Grid logic
-let tileHover  = -1;
-let lastTile   = -1;
+let tileHover   = -1;
+let lastTile    = -1;
+let Pointlocked = false;
+let Placing     = false;
+const raycaster = new THREE.Raycaster();
+const pointer   = new THREE.Vector2();
 
 function MoveTile( selector ) {
   const amount = parseInt( toolamount.value );
@@ -283,30 +243,63 @@ function MoveTile( selector ) {
   }
 }
 
-gc.addEventListener( 'mousemove', ev => {
-  // this isn't how client coords are supposed to work.
-  const cellX = Math.floor( (ev.clientX-960) / 20 );
-  const cellY = Math.floor(  ev.clientY      / 20 );
-  tileHover = cellX * 16 + cellY;
-
-  if ( tileHover != lastTile ) {
-    lastTile = tileHover;
-
-    // if main button down
-    if ( ev.buttons % 2 == 1 ) {
-      MoveTile( tileHover );
-    }
+function CastTile ( ev ) {
+  pointer.x = ( ev.clientX / window.innerWidth ) * 2 - 1;
+  pointer.y = - ( ev.clientY / window.innerHeight ) * 2 + 1;
+  raycaster.setFromCamera( pointer, camera );
+  const intersects = raycaster.intersectObjects( tile, false );
+  if ( intersects.length > 0 ) {
+    const obj = intersects[0].object;
+    tileHover = obj.x * 16 + obj.y;
+  } else {
+    tileHover = -1;
   }
-});
+}
 
-gc.addEventListener( 'mousedown', ev => {
-  if ( ev.button == 0 ) {
+// Cam pointerlock
+renderer.domElement.addEventListener( 'mousedown', ev => {
+  ev.preventDefault();
+  if ( ev.button == 2 ) {
+    Pointlocked = true;
+    renderer.domElement.requestPointerLock();
+  } else if ( ev.button == 0 ) {
+    Placing = true;
+    CastTile( ev );
     MoveTile( tileHover );
   }
 });
 
-gc.addEventListener( 'mouseleave', () => {
-  tileHover = -1;
+renderer.domElement.addEventListener( 'mouseup', ev => {
+  ev.preventDefault();
+  if ( ev.button == 2 ) {
+    Pointlocked = false;
+    document.exitPointerLock();
+  } else if ( ev.button == 0 ) {
+    Placing = false;
+  }
+});
+
+renderer.domElement.addEventListener( 'mousemove', ev => {
+  ev.preventDefault();
+  if ( Pointlocked ) {
+    CamRot -= ev.movementX / 300;
+    CamRot = CamRot % ( 2 * Math.PI );
+  } else {
+    // Selection
+    CastTile( ev );
+
+    // Creation
+    if ( tileHover != lastTile ) {
+      // Make sure we don't over-change the tile
+      lastTile = tileHover;
+      if ( Placing ) MoveTile( tileHover );
+    }
+  }
+});
+
+// Cam vertical movement
+renderer.domElement.addEventListener( 'wheel', ev => {
+  camera.position.y -= ev.deltaY / 300;
 });
 
 
@@ -392,33 +385,9 @@ function animate() {
   DeltaT = Date.now() - LastTime;
   LastTime += DeltaT;
 
-  // ZapPlane.rotateX( -0.01 );
-  // ZapPlane.translateZ( -0.05 );
 
 
-  // Draw the grid
-
-  for (let x=0; x<16; x++) {
-    for (let y=0; y<16; y++) {
-      if (  x * 16 + y == tileHover ) ctx.fillStyle = 'white'
-      else                            ctx.fillStyle = 'gray'
-      
-      ctx.fillRect( x*20, y*20, 20, 20 );
-
-      ctx.fillStyle = 'black';
-      ctx.fillText(
-        ( layerselect.value == 'height' ) ?
-          String( tile[x*16+y].h ) :
-          tile[x*16+y].entity,
-        x*20+10,
-        y*20+10,
-      )
-    }
-  }
-
-
-
-  // Ease cam back to 0 (using compass instead)
+  // Ease cam back to 0 (use compass instead)
   // if ( !Pointlocked ) {
   //   CamRot -= ( CamRot/300 ) * DeltaT;
   // }
