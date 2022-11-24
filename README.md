@@ -10,12 +10,6 @@ Download and unzip any release package, x64 recommended.
 
 This program is currently portable, so extract it anywhere you like! Location won't affect anything.
 
-# How to use
-
-In the 3D viewport...
-- Left drag-click to move camera left-right
-- Scroll to move camera up/down
-
 
 
 
